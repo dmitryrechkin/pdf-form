@@ -141,8 +141,6 @@ describe('PdfFormReader', () =>
 		// Read the filled form
 		const formData = await pdfFormReader.readForm(filledPdfBuffer);
 
-		console.log(formData);
-
 		// Save the result as Output.pdf for manual review
 		const outputPdfPath = path.resolve(__dirname, './Output.pdf');
 		fs.writeFileSync(outputPdfPath, Buffer.from(filledPdfBuffer));

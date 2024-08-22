@@ -1,4 +1,5 @@
 import { PDFDocument, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFField } from 'pdf-lib';
+import type { TypePdfFormFieldValue, TypePdfFormFieldValues } from './Type';
 
 export class PdfFormReader
 {
@@ -6,13 +7,13 @@ export class PdfFormReader
 	 * Reads the form fields of a PDF and returns their values.
 	 *
 	 * @param {Uint8Array} input - The input PDF form as a byte array.
-	 * @returns {Promise<Record<string, string>>} - The form field values as a key-value pair.
+	 * @returns {Promise<TypePdfFormFieldValues>} - The form field values as a key-value pair.
 	 */
-	async readForm(input: Uint8Array): Promise<Record<string, string>>
+	async readForm(input: Uint8Array): Promise<TypePdfFormFieldValues>
 	{
 		const pdfDoc = await PDFDocument.load(input);
 		const form = pdfDoc.getForm();
-		const data: Record<string, string> = {};
+		const data: TypePdfFormFieldValues = {};
 
 		// Read the form fields
 		form.getFields().forEach((field: PDFField) =>
@@ -33,13 +34,13 @@ export class PdfFormReader
 	 * Gets the value of a form field based on its type.
 	 *
 	 * @param {PDFField} field
-	 * @returns {string}
+	 * @returns {TypePdfFormFieldValue}
 	 */
-	private getFieldValue(field: PDFField): string
+	private getFieldValue(field: PDFField): TypePdfFormFieldValue
 	{
 		if (field instanceof PDFTextField)
 		{
-			return field.getText() ?? '';
+			return field.getText();
 		}
 
 		if (field instanceof PDFCheckBox)

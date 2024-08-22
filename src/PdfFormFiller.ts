@@ -1,4 +1,5 @@
 import { PDFDocument, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFField } from 'pdf-lib';
+import { type TypePdfFormFieldValue, type TypePdfFormFieldValues } from './Type';
 
 export class PdfFormFiller
 {
@@ -6,10 +7,10 @@ export class PdfFormFiller
 	 * Fills the form fields of a PDF template with the provided data.
 	 *
 	 * @param {Uint8Array} input - The input PDF form as a byte array.
-	 * @param {Record<string, string>} data - A key-value pair of field names with their values.
+	 * @param {RTypePdfFormValues} data - A key-value pair of field names with their values.
 	 * @returns {Promise<Uint8Array>} - The modified PDF as a byte array.
 	 */
-	async fillForm(input: Uint8Array, data: Record<string, string>): Promise<Uint8Array>
+	async fillForm(input: Uint8Array, data: TypePdfFormFieldValues): Promise<Uint8Array>
 	{
 		const pdfDoc = await PDFDocument.load(input);
 		const form = pdfDoc.getForm();
@@ -18,6 +19,7 @@ export class PdfFormFiller
 		form.getFields().forEach((field: PDFField) =>
 		{
 			const value = this.getValueForField(field.getName(), data);
+
 			this.setFieldValue(field, value);
 		});
 
@@ -30,39 +32,42 @@ export class PdfFormFiller
 	 * Gets the value for a field from the provided data.
 	 *
 	 * @param {string} name - The name of the field.
-	 * @param {Record<string, string>} data - The data to search for the field value.
-	 * @returns {string} - The value of the field.
+	 * @param {TypePdfFormFieldValues} data - The data to search for the field value.
+	 * @returns {TypePdfFormFieldValue} - The value of the field.
 	 */
-	private getValueForField(name: string, data: Record<string, string>): string
+	private getValueForField(name: string, data: TypePdfFormFieldValues): TypePdfFormFieldValue
 	{
-		let value = data[name];
+		let value = name in data ? data[name] : undefined;
 		if (value === undefined && name.includes('_es_'))
 		{
 			value = data[name.split('_es_')[0]];
 		}
 
-		return value ?? '';
+		return value;
 	}
 
 	/**
 	 * Sets the value of a form field based on its type.
 	 *
 	 * @param {PDFField} field
-	 * @param {string} value
+	 * @param {TypePdfFormFieldValue} value
 	 * @returns {void}
 	 */
-	private setFieldValue(field: PDFField, value: string): void
+	private setFieldValue(field: PDFField, value: TypePdfFormFieldValue): void
 	{
+		const stringValue = value?.toString();
 		if (field instanceof PDFTextField)
 		{
-			field.setText(value);
+			field.setText(stringValue);
 
 			return;
 		}
 
 		if (field instanceof PDFCheckBox)
 		{
-			if (value.toLowerCase() === 'yes' || value === 'true' || value === '1')
+			const lowerCasedStringValue = stringValue?.toLowerCase();
+
+			if (lowerCasedStringValue === 'yes' || lowerCasedStringValue === 'true' || lowerCasedStringValue === '1')
 			{
 				field.check();
 			}
@@ -76,14 +81,14 @@ export class PdfFormFiller
 
 		if (field instanceof PDFRadioGroup)
 		{
-			field.select(value);
+			field.select(stringValue ?? '');
 
 			return;
 		}
 
 		if (field instanceof PDFDropdown)
 		{
-			field.select(value);
+			field.select(stringValue ?? '');
 
 			return;
 		}

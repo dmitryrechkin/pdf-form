@@ -36,6 +36,60 @@ describe('PdfFormFiller', () =>
 		expect(filledSuperhero).toBe('Spider-Man');
 	});
 
+	it('should fill a number field in the PDF form', async () =>
+	{
+		const pdfDoc = await PDFDocument.create();
+		const page = pdfDoc.addPage([550, 750]);
+		const form = pdfDoc.getForm();
+
+		page.drawText('Enter your favorite number:', { x: 50, y: 600, size: 20 });
+
+		const numberField = form.createTextField('favorite.number');
+		numberField.setText('42');
+		numberField.addToPage(page, { x: 55, y: 540 });
+
+		const pdfBytes = await pdfDoc.save();
+		const pdfBuffer = new Uint8Array(pdfBytes);
+
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		const data = { 'favorite.number': 69 };
+
+		const filledPdfBuffer = await pdfFormFiller.fillForm(pdfBuffer, data);
+
+		const filledPdfDoc = await PDFDocument.load(filledPdfBuffer);
+		const filledForm = filledPdfDoc.getForm();
+
+		const filledNumber = filledForm.getTextField('favorite.number').getText();
+
+		expect(filledNumber).toBe('69');
+	});
+
+	it('should fill undefined value to PDF form field when data value is undefined', async () =>
+	{
+		const pdfDoc = await PDFDocument.create();
+		const page = pdfDoc.addPage([550, 750]);
+		const form = pdfDoc.getForm();
+
+		page.drawText('Enter your favorite color:', { x: 50, y: 500, size: 20 });
+
+		const colorField = form.createTextField('favorite.color');
+		colorField.setText('red');
+		colorField.addToPage(page, { x: 55, y: 440 });
+
+		const pdfBytes = await pdfDoc.save();
+		const pdfBuffer = new Uint8Array(pdfBytes);
+
+		const data = { 'favorite.color': undefined };
+
+		const filledPdfBuffer = await pdfFormFiller.fillForm(pdfBuffer, data);
+
+		const filledPdfDoc = await PDFDocument.load(filledPdfBuffer);
+		const filledForm = filledPdfDoc.getForm();
+
+		const filledColor = filledForm.getTextField('favorite.color').getText();
+		expect(filledColor).toBeUndefined();
+	});
+
 	it('should fill a radio button in the PDF form', async () =>
 	{
 		const pdfDoc = await PDFDocument.create();
