@@ -121,6 +121,37 @@ describe('PdfFormFiller', () =>
 		expect(filledRocket).toBe('Falcon Heavy');
 	});
 
+	it('should fill the first value in radio button when value is unsupported', async () =>
+	{
+		const pdfDoc = await PDFDocument.create();
+		const page = pdfDoc.addPage([550, 750]);
+		const form = pdfDoc.getForm();
+
+		page.drawText('Select your favorite rocket:', { x: 50, y: 600, size: 20 });
+		page.drawText('Falcon Heavy', { x: 120, y: 560, size: 18 });
+		page.drawText('Saturn IV', { x: 120, y: 500, size: 18 });
+
+		const rocketField = form.createRadioGroup('favorite.rocket');
+		rocketField.addOptionToPage('Falcon Heavy', page, { x: 55, y: 540 });
+		rocketField.addOptionToPage('Saturn IV', page, { x: 55, y: 480 });
+		rocketField.select('Saturn IV');
+
+		const pdfBytes = await pdfDoc.save();
+		const pdfBuffer = new Uint8Array(pdfBytes);
+
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		const data = { 'favorite.rocket': 'Starship' };
+
+		const filledPdfBuffer = await pdfFormFiller.fillForm(pdfBuffer, data);
+
+		const filledPdfDoc = await PDFDocument.load(filledPdfBuffer);
+		const filledForm = filledPdfDoc.getForm();
+
+		const filledRocket = filledForm.getRadioGroup('favorite.rocket').getSelected();
+
+		expect(filledRocket).toBe('Falcon Heavy');
+	});
+
 	it('should fill a checkbox in the PDF form', async () =>
 	{
 		const pdfDoc = await PDFDocument.create();

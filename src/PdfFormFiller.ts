@@ -59,38 +59,73 @@ export class PdfFormFiller
 		if (field instanceof PDFTextField)
 		{
 			field.setText(stringValue);
-
 			return;
 		}
 
 		if (field instanceof PDFCheckBox)
 		{
-			const lowerCasedStringValue = stringValue?.toLowerCase();
-
-			if (lowerCasedStringValue === 'yes' || lowerCasedStringValue === 'true' || lowerCasedStringValue === '1')
-			{
-				field.check();
-			}
-			else
-			{
-				field.uncheck();
-			}
-
+			this.setCheckBoxValue(field, value);
 			return;
 		}
 
-		if (field instanceof PDFRadioGroup)
+		if (field instanceof PDFRadioGroup || field instanceof PDFDropdown)
 		{
-			field.select(stringValue ?? '');
-
+			this.setRadioGroupOrDropdownValue(field, value);
 			return;
 		}
+	}
 
-		if (field instanceof PDFDropdown)
+	/**
+	 * Sets the value of a checkbox field based on its type.
+	 *
+	 * @param {PDFCheckBox} field
+	 * @param {TypePdfFormFieldValue} value
+	 * @returns {void}
+	 */
+	private setCheckBoxValue(field: PDFCheckBox, value: TypePdfFormFieldValue): void
+	{
+		const lowerCasedStringValue = value?.toString().toLowerCase();
+
+		if (lowerCasedStringValue === 'yes' || lowerCasedStringValue === 'true' || lowerCasedStringValue === '1')
 		{
-			field.select(stringValue ?? '');
+			field.check();
+		}
+		else
+		{
+			field.uncheck();
+		}
+	}
 
-			return;
+	/**
+	 * Sets the value of a radio group or dropdown field based on its type.
+	 *
+	 * @param {PDFRadioGroup | PDFDropdown} field
+	 * @param {TypePdfFormFieldValue} value
+	 * @returns {void}
+	 */
+	private setRadioGroupOrDropdownValue(field: PDFRadioGroup | PDFDropdown, value: TypePdfFormFieldValue): void
+	{
+		const stringValue = value?.toString();
+		const options = field.getOptions();
+		const matchingOption = options.find(option => option === stringValue);
+
+		if (matchingOption)
+		{
+			field.select(matchingOption);
+		}
+		else if (options.length > 0)
+		{
+			// Handle the case when the provided value doesn't match any option
+			// You can throw an error, log a warning, or handle it in any other way
+			// For example, you can select the first option as a fallback:
+			field.select(options[0]);
+		}
+		else
+		{
+			// Handle the case when there are no options available
+			// You can throw an error, log a warning, or handle it in any other way
+			// For example, you can leave the field unselected:
+			field.select('');
 		}
 	}
 }
