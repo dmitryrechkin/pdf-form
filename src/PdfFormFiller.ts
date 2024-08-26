@@ -10,7 +10,7 @@ export class PdfFormFiller
 	 * @param {RTypePdfFormValues} data - A key-value pair of field names with their values.
 	 * @returns {Promise<Uint8Array>} - The modified PDF as a byte array.
 	 */
-	async fillForm(input: Uint8Array, data: TypePdfFormFieldValues): Promise<Uint8Array>
+	async fillForm<TypeCustomFieldValues extends TypePdfFormFieldValues = TypePdfFormFieldValues>(input: Uint8Array, data: TypeCustomFieldValues): Promise<Uint8Array>
 	{
 		const pdfDoc = await PDFDocument.load(input);
 		const form = pdfDoc.getForm();
@@ -35,7 +35,7 @@ export class PdfFormFiller
 	 * @param {TypePdfFormFieldValues} data - The data to search for the field value.
 	 * @returns {TypePdfFormFieldValue} - The value of the field.
 	 */
-	private getValueForField(name: string, data: TypePdfFormFieldValues): TypePdfFormFieldValue
+	private getValueForField<TypeCustomFieldValues extends TypePdfFormFieldValues>(name: string, data: TypeCustomFieldValues): TypePdfFormFieldValue
 	{
 		let value = name in data ? data[name] : undefined;
 		if (value === undefined && name.includes('_es_'))

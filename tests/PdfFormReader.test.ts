@@ -96,7 +96,7 @@ describe('PdfFormReader', () =>
 		expect(formData.gender).toBe('Female');
 	});
 
-	it('should correctly read dropdown fields from a filled PDF form', async () =>
+	it('should correctly read dropdown fields from a filled PDF form into a custom type', async () =>
 	{
 		// Create a simple PDF form with a dropdown
 		const pdfDoc = await PDFDocument.create();
@@ -117,8 +117,10 @@ describe('PdfFormReader', () =>
 		// Fill the form
 		const filledPdfBuffer = await pdfFormFiller.fillForm(pdfBuffer, data);
 
+		type CustomFieldValues = { country: string };
+
 		// Read the filled form
-		const formData = await pdfFormReader.readForm(filledPdfBuffer);
+		const formData: CustomFieldValues = await pdfFormReader.readForm<CustomFieldValues>(filledPdfBuffer);
 
 		// Verify the form data
 		expect(formData.country).toBe('Canada');

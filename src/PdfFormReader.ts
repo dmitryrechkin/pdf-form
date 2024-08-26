@@ -7,9 +7,9 @@ export class PdfFormReader
 	 * Reads the form fields of a PDF and returns their values.
 	 *
 	 * @param {Uint8Array} input - The input PDF form as a byte array.
-	 * @returns {Promise<TypePdfFormFieldValues>} - The form field values as a key-value pair.
+	 * @returns {Promise<TypeCustomFieldValues>} - The form field values as a key-value pair.
 	 */
-	async readForm(input: Uint8Array): Promise<TypePdfFormFieldValues>
+	public async readForm<TypeCustomFieldValues extends TypePdfFormFieldValues = TypePdfFormFieldValues>(input: Uint8Array): Promise<TypeCustomFieldValues>
 	{
 		const pdfDoc = await PDFDocument.load(input);
 		const form = pdfDoc.getForm();
@@ -27,7 +27,7 @@ export class PdfFormReader
 			data[nameBeforeEs] = value;
 		});
 
-		return data;
+		return { ...data } as TypeCustomFieldValues;
 	}
 
 	/**
